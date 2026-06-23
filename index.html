@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cartografía | Clínica de la Convergencia</title>
+    <style>
+        body { margin: 0; background: #050508; color: #d4af37; font-family: sans-serif; overflow: hidden; }
+        #mapa-container { position: relative; width: 100vw; height: 100vh; background: url('neuro.png') center/cover no-repeat; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 8, 0.6); pointer-events: none; }
+        .nodo {
+            position: absolute; width: 100px; height: 100px; border-radius: 50%;
+            background: rgba(13, 17, 23, 0.9); border: 2px solid #d4af37; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            cursor: pointer; transition: all 0.3s; z-index: 10; font-size: 0.6em; font-weight: bold; text-align: center;
+        }
+        .nodo:hover { transform: scale(1.1); background: #d4af37; color: #000; }
+    </style>
+</head>
+<body>
+
+<div id="mapa-container">
+    <div class="overlay"></div>
+    <div id="estaciones"></div>
+</div>
+
+<script>
+    const estaciones = [
+        { id: 1, x: 20, y: 50, nombre: "Intersubjetividad" },
+        { id: 2, x: 30, y: 25, nombre: "Memoria" },
+        { id: 3, x: 45, y: 15, nombre: "Deseo" },
+        { id: 4, x: 65, y: 20, nombre: "Marcador Somático" },
+        { id: 5, x: 80, y: 45, nombre: "Repetición" },
+        { id: 6, x: 75, y: 70, nombre: "Plasticidad" },
+        { id: 7, x: 55, y: 80, nombre: "Sueño/Alucinación" },
+        { id: 8, x: 30, y: 75, nombre: "Ello Somático" },
+        { id: 9, x: 50, y: 45, nombre: "Focalización" },
+        { id: 10, x: 50, y: 92, nombre: "Ética/Cerebro Digital" }
+    ];
+
+    const container = document.getElementById('estaciones');
+    
+    // CORRECCIÓN: Limpiamos antes de dibujar para que no se dupliquen
+    container.innerHTML = ''; 
+
+    estaciones.forEach(est => {
+        const div = document.createElement('div');
+        div.className = 'nodo';
+        div.style.left = est.x + '%';
+        div.style.top = est.y + '%';
+        div.innerHTML = `<span>${est.id}</span> ${est.nombre}`;
+        
+        // CORRECCIÓN: El enlace ahora lleva el ID correcto
+        div.onclick = () => {
+            window.location.href = `encuentro.html?id=${est.id}`;
+        };
+        container.appendChild(div);
+    });
+</script>
+</body>
+</html>
