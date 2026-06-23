@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Cartografía | Clínica de la Convergencia</title>
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
@@ -17,6 +16,7 @@
             cursor: pointer; transition: all 0.3s; z-index: 10; font-size: 0.6em; font-weight: bold; text-align: center;
         }
         .nodo:hover { transform: scale(1.1); background: #d4af37; color: #000; }
+        .nodo.completado { border: 4px solid #4caf50; } /* Estilo visual del trayecto */
     </style>
 </head>
 <body>
@@ -45,26 +45,45 @@
         { id: 10, x: 50, y: 92, nombre: "Ética/Cerebro Digital" }
     ];
 
-    const container = document.getElementById('estaciones');
-    container.innerHTML = ''; 
+    async function iniciarSesionYMapa() {
+        // Captura identidad
+        let user = localStorage.getItem("usuarioActual");
+        if (!user) {
+            user = prompt("Ingrese Nombre y Apellido para iniciar la sesión clínica:");
+            if (user) localStorage.setItem("usuarioActual", user);
+            else user = "INVITADO";
+        }
 
-    estaciones.forEach(est => {
-        const div = document.createElement('div');
-        div.className = 'nodo';
-        div.style.left = est.x + '%';
-        div.style.top = est.y + '%';
-        div.innerHTML = `<span>${est.id}</span> ${est.nombre}`;
-        
-        div.onclick = () => {
-            // Lógica de redirección específica para Estación 1 y genérica para el resto
-            if (est.id === 1) {
-                window.location.href = "https://drrubenmpereyra-stack.github.io/estacion-1-evaluacion-clinica/";
-            } else {
-                window.location.href = `encuentro.html?id=${est.id}`;
-            }
-        };
-        container.appendChild(div);
-    });
+        const container = document.getElementById('estaciones');
+        container.innerHTML = ''; 
+
+        // Crear nodos
+        estaciones.forEach(est => {
+            const div = document.createElement('div');
+            div.className = 'nodo';
+            div.dataset.id = est.id;
+            div.style.left = est.x + '%';
+            div.style.top = est.y + '%';
+            div.innerHTML = `<span>${est.id}</span> ${est.nombre}`;
+            div.onclick = () => {
+                if (est.id === 1) window.location.href = "https://drrubenmpereyra-stack.github.io/estacion-1-evaluacion-clinica/";
+                else window.location.href = `encuentro.html?id=${est.id}`;
+            };
+            container.appendChild(div);
+        });
+
+        // Cargar progreso desde Firebase
+        const doc = await db.collection("progreso").doc(user).get();
+        if (doc.exists) {
+            const completadas = doc.data().estaciones_completadas || [];
+            completadas.forEach(id => {
+                const nodo = document.querySelector(`[data-id="${id}"]`);
+                if (nodo) nodo.classList.add('completado');
+            });
+        }
+    }
+
+    iniciarSesionYMapa();
 </script>
 </body>
 </html>
