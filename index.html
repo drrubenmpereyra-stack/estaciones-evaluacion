@@ -2,77 +2,102 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Cartografía | Clínica de la Convergencia</title>
+    <title>Estación 1: Cartografía de la Intersubjetividad</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        body { margin: 0; background: #050508; color: #d4af37; font-family: sans-serif; overflow: hidden; }
-        #mapa-container { position: relative; width: 100vw; height: 100vh; background: url('neuro.png') center/cover no-repeat; }
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 8, 0.6); pointer-events: none; }
-        .nodo { position: absolute; width: 100px; height: 100px; border-radius: 50%; background: rgba(13, 17, 23, 0.9); border: 2px solid #d4af37; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: all 0.3s; z-index: 10; font-size: 0.6em; font-weight: bold; text-align: center; }
-        .nodo:hover { transform: scale(1.1); background: #d4af37; color: #000; }
-        .nodo.completado { border: 4px solid #4caf50; box-shadow: 0 0 15px #4caf50; }
+        body { background: #050508; color: #d4af37; font-family: sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .contenido { max-width: 800px; width: 100%; padding: 40px; border: 1px solid #d4af37; border-radius: 15px; background: #0d1117; }
+        .btn { padding: 10px 20px; border: 1px solid #d4af37; color: #d4af37; background: transparent; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #d4af37; color: #000; }
+        video, audio { width: 100%; margin: 20px 0; border: 1px solid #d4af37; }
+        #feedback { margin: 15px 0; font-style: italic; color: #aaa; min-height: 50px; font-weight: bold; }
+        .correcta { color: #4caf50 !important; }
+        .incorrecta { color: #f44336 !important; }
     </style>
 </head>
 <body>
 
-<div id="mapa-container">
-    <div class="overlay"></div>
-    <div id="estaciones"></div>
+<div class="contenido">
+    <h1>Cartografía de la Intersubjetividad</h1>
+    <video controls src="https://github.com/drrubenmpereyra-stack/video-trazado-estacion-1/raw/refs/heads/main/video_traazado.mp4"></video>
+    <audio controls src="https://github.com/drrubenmpereyra-stack/audio-estacion-1/raw/refs/heads/main/Audio1.mp4"></audio>
+
+    <div id="contenedor-evaluacion">
+        <h3 id="pregunta-texto">Cargando...</h3>
+        <div id="opciones-container"></div>
+        <div id="feedback"></div>
+        <button id="btn-siguiente" class="btn" style="display:none;">Siguiente Pregunta</button>
+        <!-- Se eliminó el botón de cierre conflictivo -->
+    </div>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        console.log("DOM cargado, iniciando sistema...");
+    const firebaseConfig = { apiKey: "AIzaSyD47_2UtWLFI_VRVvvXVAqn4zZzZ4d1ggo", projectId: "av-clinica-convergencia", authDomain: "av-clinica-convergencia.firebaseapp.com", databaseURL: "https://av-clinica-convergencia-default-rtdb.firebaseio.com", storageBucket: "av-clinica-convergencia.firebasestorage.app", messagingSenderId: "939404425675", appId: "1:939404425675:web:8cfae157099efabd741e4e" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const user = localStorage.getItem("usuarioActual") || "INVITADO";
+
+    const bancoPreguntas = [
+        { q: "¿Qué micro-expresión facial del paciente contradice su relato?", o: ["Tensión orbicular", "Relajación bucal", "Parpadeo ausente"], c: 0, f: "La disociación entre lo verbal y lo somático es un marcador clínico de defensa." },
+        { q: "¿Qué fenómeno contratransferencial se activa ante el silencio?", o: ["Vacío", "Euforia", "Rechazo"], c: 0, f: "El vacío es la respuesta emocional del analista a la desconexión del paciente." },
+        { q: "¿Qué lugar ocupa el fonema /s/ en la estructura del deseo?", o: ["Contención", "Irrupción", "Silencio"], c: 0, f: "La repetición actúa como un escudo ante la angustia del Ello." },
+        { q: "¿Cuál es el correlato neurobiológico de la aceleración del audio?", o: ["Activación simpática", "Sedación", "Homeostasis"], c: 0, f: "La desregulación autónoma es la vía regia del afecto reprimido." },
+        { q: "¿Cómo definirías la alianza en este corte?", o: ["Fragilizada", "Sólida", "Indiferente"], c: 0, f: "Una alianza sostenida en la resistencia es un pacto defensivo." },
+        { q: "¿Qué indica el cierre en el pecho?", o: ["Clausura Super-yoica", "Distensión", "Apertura"], c: 0, f: "El cuerpo siempre habla lo que el sujeto se niega a significar." },
+        { q: "¿Qué significa la interrupción del flujo a los 2:00?", o: ["Clivaje del sujeto", "Continuidad", "Fatiga"], c: 0, f: "La interrupción marca la irrupción de la pulsión." },
+        { q: "¿Qué transferencia opera en la demanda del paciente?", o: ["Especular", "Simbólica", "Imaginaría"], c: 0, f: "El paciente busca una imagen de completud que le es ajena." },
+        { q: "¿Cuál es la función del silencio del analista?", o: ["Corte simbólico", "Castigo", "Olvido"], c: 0, f: "Permite que el sujeto se escuche en su propia escisión." },
+        { q: "¿Qué rasgo digital resuena con la clínica?", o: ["Fragmentación", "Fluidez", "Nitidez"], c: 0, f: "La forma del medio es homóloga a la estructura del psiquismo." }
+    ];
+
+    let indice = 0;
+    let respondido = false;
+
+    function cargarPregunta() {
+        respondido = false;
+        const p = bancoPreguntas[indice];
+        document.getElementById('pregunta-texto').textContent = p.q;
+        const container = document.getElementById('opciones-container');
+        container.innerHTML = p.o.map((op, i) => `<button class="btn" onclick="validar(${i})">${op}</button>`).join('');
+        document.getElementById('feedback').className = "";
+        document.getElementById('feedback').textContent = "";
+        document.getElementById('btn-siguiente').style.display = "none";
+    }
+
+    function validar(i) {
+        if (respondido) return;
+        respondido = true;
+        const p = bancoPreguntas[indice];
+        const f = document.getElementById('feedback');
         
-        const firebaseConfig = { apiKey: "AIzaSyD47_2UtWLFI_VRVvvXVAqn4zZzZ4d1ggo", projectId: "av-clinica-convergencia", authDomain: "av-clinica-convergencia.firebaseapp.com", databaseURL: "https://av-clinica-convergencia-default-rtdb.firebaseio.com", storageBucket: "av-clinica-convergencia.firebasestorage.app", messagingSenderId: "939404425675", appId: "1:939404425675:web:8cfae157099efabd741e4e" };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        const estaciones = [
-            { id: 1, x: 20, y: 50, nombre: "Intersubjetividad" },
-            { id: 2, x: 30, y: 25, nombre: "Memoria" },
-            { id: 3, x: 45, y: 15, nombre: "Deseo" },
-            { id: 4, x: 65, y: 20, nombre: "Marcador Somático" },
-            { id: 5, x: 80, y: 45, nombre: "Repetición" },
-            { id: 6, x: 75, y: 70, nombre: "Plasticidad" },
-            { id: 7, x: 55, y: 80, nombre: "Sueño/Alucinación" },
-            { id: 8, x: 30, y: 75, nombre: "Ello Somático" },
-            { id: 9, x: 50, y: 45, nombre: "Focalización" },
-            { id: 10, x: 50, y: 92, nombre: "Ética/Cerebro Digital" }
-        ];
-
-        let user = localStorage.getItem("usuarioActual");
-        if (!user) {
-            user = prompt("Ingrese Nombre y Apellido:");
-            if (user) localStorage.setItem("usuarioActual", user);
-            else user = "INVITADO";
+        if (i === p.c) {
+            f.textContent = "¡Correcto! " + p.f;
+            f.className = "correcta";
+        } else {
+            f.textContent = "Incorrecto. " + p.f;
+            f.className = "incorrecta";
         }
+        document.getElementById('btn-siguiente').style.display = "inline-block";
+    }
 
-        const container = document.getElementById('estaciones');
-        estaciones.forEach(est => {
-            const div = document.createElement('div');
-            div.className = 'nodo';
-            div.dataset.id = est.id;
-            div.style.left = est.x + '%';
-            div.style.top = est.y + '%';
-            div.innerHTML = `<span>${est.id}</span> ${est.nombre}`;
-            div.onclick = () => {
-                if (est.id === 1) window.location.href = "https://drrubenmpereyra-stack.github.io/estacion-1-evaluacion-clinica/";
-                else window.location.href = `encuentro.html?id=${est.id}`;
-            };
-            container.appendChild(div);
-        });
+    document.getElementById('btn-siguiente').onclick = () => {
+        indice++;
+        if (indice < bancoPreguntas.length) {
+            cargarPregunta();
+        } else {
+            document.getElementById('pregunta-texto').textContent = "Evaluación finalizada. Puede cerrar esta pestaña para volver al mapa.";
+            document.getElementById('opciones-container').innerHTML = "";
+            document.getElementById('btn-siguiente').style.display = "none";
+            finalizar();
+        }
+    };
 
-        db.collection("progreso").doc(user).get().then((doc) => {
-            if (doc.exists) {
-                doc.data().estaciones_completadas.forEach(id => {
-                    const nodo = document.querySelector(`[data-id="${id}"]`);
-                    if (nodo) nodo.classList.add('completado');
-                });
-            }
-        });
-    });
+    async function finalizar() {
+        await db.collection("progreso").doc(user).set({ estacion_1_finalizada: true }, { merge: true });
+    }
+
+    cargarPregunta();
 </script>
 </body>
 </html>
