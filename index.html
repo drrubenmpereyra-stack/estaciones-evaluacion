@@ -2,29 +2,60 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Cartografía</title>
+    <title>Cartografía | Clínica de la Convergencia</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        body { margin: 0; background: #050508; color: #d4af37; font-family: sans-serif; }
+        #login-div { text-align: center; margin-top: 100px; }
+        .nodo { position: absolute; width: 100px; height: 100px; border: 2px solid #d4af37; background: #0d1117; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    </style>
 </head>
-<body style="background:#000; color:#d4af37;">
+<body>
 
-    <div id="input-area">
-        <input type="text" id="nombre" placeholder="APELLIDO Nombre">
-        <button onclick="guardar()">ACEPTAR</button>
-    </div>
+<div id="login-div">
+    <h1>Identificación</h1>
+    <input type="text" id="nombre-usuario" placeholder="APELLIDO Nombre">
+    <button onclick="registrar()">ACEPTAR</button>
+</div>
 
-    <script>
-        const firebaseConfig = { apiKey: "AIzaSyD47_2UtWLFI_VRVvvXVAqn4zZzZ4d1ggo", projectId: "av-clinica-convergencia", authDomain: "av-clinica-convergencia.firebaseapp.com", databaseURL: "https://av-clinica-convergencia-default-rtdb.firebaseio.com", storageBucket: "av-clinica-convergencia.firebasestorage.app", messagingSenderId: "939404425675", appId: "1:939404425675:web:8cfae157099efabd741e4e" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+<div id="estaciones"></div>
 
-        async function guardar() {
-            const val = document.getElementById('nombre').value;
-            if(!val) return;
-            localStorage.setItem("usuarioActual", val);
-            await db.collection("progreso").doc(val).set({ nombre: val }, { merge: true });
-            alert("Grabado en base de datos: " + val);
-        }
-    </script>
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyD47_2UtWLFI_VRVvvXVAqn4zZzZ4d1ggo", projectId: "av-clinica-convergencia", authDomain: "av-clinica-convergencia.firebaseapp.com", databaseURL: "https://av-clinica-convergencia-default-rtdb.firebaseio.com", storageBucket: "av-clinica-convergencia.firebasestorage.app", messagingSenderId: "939404425675", appId: "1:939404425675:web:8cfae157099efabd741e4e" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function registrar() {
+        const nombre = document.getElementById('nombre-usuario').value;
+        if (!nombre) return;
+        
+        localStorage.setItem("usuarioActual", nombre);
+        await db.collection("progreso").doc(nombre).set({ registro: true }, { merge: true });
+        
+        document.getElementById('login-div').style.display = 'none';
+        crearNodos();
+    }
+
+    function crearNodos() {
+        const container = document.getElementById('estaciones');
+        const ests = [{id: 1, x: 20, y: 50}, {id: 2, x: 40, y: 20}];
+        ests.forEach(e => {
+            const d = document.createElement('div');
+            d.className = 'nodo';
+            d.style.left = e.x + '%';
+            d.style.top = e.y + '%';
+            d.innerHTML = "Estación " + e.id;
+            d.onclick = () => window.location.href = "https://drrubenmpereyra-stack.github.io/estacion-1-evaluacion-clinica/";
+            container.appendChild(d);
+        });
+    }
+
+    // Carga automática si ya existe
+    if (localStorage.getItem("usuarioActual")) {
+        document.getElementById('login-div').style.display = 'none';
+        crearNodos();
+    }
+</script>
 </body>
 </html>
