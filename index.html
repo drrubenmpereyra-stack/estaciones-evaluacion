@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Cartografía | Clínica de la Convergencia</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
         body { margin: 0; background: #050508; color: #d4af37; font-family: sans-serif; overflow: hidden; }
         #mapa-container { position: relative; width: 100vw; height: 100vh; background: url('neuro.png') center/cover no-repeat; }
@@ -24,6 +27,11 @@
 </div>
 
 <script>
+    // 1. Inicialización Firebase
+    const firebaseConfig = { apiKey: "AIzaSyD47_2UtWLFI_VRVvvXVAqn4zZzZ4d1ggo", projectId: "av-clinica-convergencia", authDomain: "av-clinica-convergencia.firebaseapp.com", databaseURL: "https://av-clinica-convergencia-default-rtdb.firebaseio.com", storageBucket: "av-clinica-convergencia.firebasestorage.app", messagingSenderId: "939404425675", appId: "1:939404425675:web:8cfae157099efabd741e4e" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     const estaciones = [
         { id: 1, x: 20, y: 50, nombre: "Intersubjetividad" },
         { id: 2, x: 30, y: 25, nombre: "Memoria" },
@@ -38,8 +46,6 @@
     ];
 
     const container = document.getElementById('estaciones');
-    
-    // CORRECCIÓN: Limpiamos antes de dibujar para que no se dupliquen
     container.innerHTML = ''; 
 
     estaciones.forEach(est => {
@@ -49,9 +55,13 @@
         div.style.top = est.y + '%';
         div.innerHTML = `<span>${est.id}</span> ${est.nombre}`;
         
-        // CORRECCIÓN: El enlace ahora lleva el ID correcto
         div.onclick = () => {
-            window.location.href = `encuentro.html?id=${est.id}`;
+            // Lógica de redirección específica para Estación 1 y genérica para el resto
+            if (est.id === 1) {
+                window.location.href = "https://drrubenmpereyra-stack.github.io/estacion-1-evaluacion-clinica/";
+            } else {
+                window.location.href = `encuentro.html?id=${est.id}`;
+            }
         };
         container.appendChild(div);
     });
