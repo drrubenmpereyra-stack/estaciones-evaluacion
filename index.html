@@ -2,81 +2,29 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Cartografía | Clínica de la Convergencia</title>
+    <title>Cartografía</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <style>
-        body { margin: 0; background: #050508; color: #d4af37; font-family: sans-serif; overflow: hidden; }
-        #mapa-container { position: relative; width: 100vw; height: 100vh; background: url('neuro.png') center/cover no-repeat; }
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 8, 0.6); }
-        .nodo { position: absolute; width: 100px; height: 100px; border-radius: 50%; background: rgba(13, 17, 23, 0.9); border: 2px solid #d4af37; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; z-index: 10; font-size: 0.6em; font-weight: bold; text-align: center; }
-        
-        #login-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; display: flex; align-items: center; justify-content: center; }
-        .login-box { text-align: center; border: 1px solid #d4af37; padding: 20px; background: #0d1117; }
-    </style>
 </head>
-<body>
+<body style="background:#000; color:#d4af37;">
 
-<div id="login-overlay">
-    <div class="login-box">
-        <h3>APELLIDO Nombre</h3>
-        <input type="text" id="nombre-usuario" placeholder="Ej: PEREIRA Ruben">
-        <button onclick="grabarDatos()">ACEPTAR</button>
+    <div id="input-area">
+        <input type="text" id="nombre" placeholder="APELLIDO Nombre">
+        <button onclick="guardar()">ACEPTAR</button>
     </div>
-</div>
 
-<div id="mapa-container">
-    <div class="overlay"></div>
-    <div id="estaciones"></div>
-</div>
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyD47_2UtWLFI_VRVvvXVAqn4zZzZ4d1ggo", projectId: "av-clinica-convergencia", authDomain: "av-clinica-convergencia.firebaseapp.com", databaseURL: "https://av-clinica-convergencia-default-rtdb.firebaseio.com", storageBucket: "av-clinica-convergencia.firebasestorage.app", messagingSenderId: "939404425675", appId: "1:939404425675:web:8cfae157099efabd741e4e" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-<script>
-    const firebaseConfig = { apiKey: "AIzaSyD47_2UtWLFI_VRVvvXVAqn4zZzZ4d1ggo", projectId: "av-clinica-convergencia", authDomain: "av-clinica-convergencia.firebaseapp.com", databaseURL: "https://av-clinica-convergencia-default-rtdb.firebaseio.com", storageBucket: "av-clinica-convergencia.firebasestorage.app", messagingSenderId: "939404425675", appId: "1:939404425675:web:8cfae157099efabd741e4e" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    async function grabarDatos() {
-        const nombre = document.getElementById('nombre-usuario').value;
-        localStorage.setItem("usuarioActual", nombre);
-        
-        // Graba el nombre en la base de datos inmediatamente
-        await db.collection("progreso").doc(nombre).set({ 
-            nombre_registrado: nombre,
-            fecha_inicio: new Date().toISOString() 
-        }, { merge: true });
-
-        document.getElementById('login-overlay').style.display = 'none';
-        renderizarMapa();
-    }
-
-    function renderizarMapa() {
-        const estaciones = [
-            { id: 1, x: 20, y: 50, nombre: "Intersubjetividad" },
-            { id: 2, x: 30, y: 25, nombre: "Memoria" },
-            { id: 3, x: 45, y: 15, nombre: "Deseo" },
-            { id: 4, x: 65, y: 20, nombre: "Marcador Somático" },
-            { id: 5, x: 80, y: 45, nombre: "Repetición" },
-            { id: 6, x: 75, y: 70, nombre: "Plasticidad" },
-            { id: 7, x: 55, y: 80, nombre: "Sueño/Alucinación" },
-            { id: 8, x: 30, y: 75, nombre: "Ello Somático" },
-            { id: 9, x: 50, y: 45, nombre: "Focalización" },
-            { id: 10, x: 50, y: 92, nombre: "Ética/Cerebro Digital" }
-        ];
-
-        const container = document.getElementById('estaciones');
-        estaciones.forEach(est => {
-            const div = document.createElement('div');
-            div.className = 'nodo';
-            div.style.left = est.x + '%';
-            div.style.top = est.y + '%';
-            div.innerHTML = `<span>${est.id}</span> ${est.nombre}`;
-            div.onclick = () => {
-                if (est.id === 1) window.location.href = "https://drrubenmpereyra-stack.github.io/estacion-1-evaluacion-clinica/";
-                else window.location.href = `encuentro.html?id=${est.id}`;
-            };
-            container.appendChild(div);
-        });
-    }
-</script>
+        async function guardar() {
+            const val = document.getElementById('nombre').value;
+            if(!val) return;
+            localStorage.setItem("usuarioActual", val);
+            await db.collection("progreso").doc(val).set({ nombre: val }, { merge: true });
+            alert("Grabado en base de datos: " + val);
+        }
+    </script>
 </body>
 </html>
