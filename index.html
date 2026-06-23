@@ -16,7 +16,6 @@
             cursor: pointer; transition: all 0.3s; z-index: 10; font-size: 0.6em; font-weight: bold; text-align: center;
         }
         .nodo:hover { transform: scale(1.1); background: #d4af37; color: #000; }
-        /* Estilo para las estaciones finalizadas */
         .nodo.completado { border: 4px solid #4caf50; box-shadow: 0 0 15px #4caf50; }
     </style>
 </head>
@@ -28,9 +27,9 @@
 </div>
 
 <script>
-    // 1. Inicialización Firebase
+    // 1. Inicialización
     const firebaseConfig = { apiKey: "AIzaSyD47_2UtWLFI_VRVvvXVAqn4zZzZ4d1ggo", projectId: "av-clinica-convergencia", authDomain: "av-clinica-convergencia.firebaseapp.com", databaseURL: "https://av-clinica-convergencia-default-rtdb.firebaseio.com", storageBucket: "av-clinica-convergencia.firebasestorage.app", messagingSenderId: "939404425675", appId: "1:939404425675:web:8cfae157099efabd741e4e" };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     const estaciones = [
@@ -46,50 +45,39 @@
         { id: 10, x: 50, y: 92, nombre: "Ética/Cerebro Digital" }
     ];
 
-    async function iniciarSesionYMapa() {
-        // Captura identidad del usuario
-        let user = localStorage.getItem("usuarioActual");
-        if (!user) {
-            user = prompt("Ingrese Nombre y Apellido para iniciar la sesión clínica:");
-            if (user) localStorage.setItem("usuarioActual", user);
-            else user = "INVITADO";
-        }
-
-        const container = document.getElementById('estaciones');
-        container.innerHTML = ''; 
-
-        // Crear nodos
-        estaciones.forEach(est => {
-            const div = document.createElement('div');
-            div.className = 'nodo';
-            div.dataset.id = est.id; // Necesario para identificarlo luego
-            div.style.left = est.x + '%';
-            div.style.top = est.y + '%';
-            div.innerHTML = `<span>${est.id}</span> ${est.nombre}`;
-            
-            div.onclick = () => {
-                if (est.id === 1) window.location.href = "https://drrubenmpereyra-stack.github.io/estacion-1-evaluacion-clinica/";
-                else window.location.href = `encuentro.html?id=${est.id}`;
-            };
-            container.appendChild(div);
-        });
-
-        // Cargar progreso desde Firebase
-        try {
-            const doc = await db.collection("progreso").doc(user).get();
-            if (doc.exists) {
-                const completadas = doc.data().estaciones_completadas || [];
-                completadas.forEach(id => {
-                    const nodo = document.querySelector(`[data-id="${id}"]`);
-                    if (nodo) nodo.classList.add('completado');
-                });
-            }
-        } catch (e) {
-            console.error("Error al cargar progreso:", e);
-        }
+    // 2. Ejecución Inmediata
+    let user = localStorage.getItem("usuarioActual");
+    if (!user) {
+        user = prompt("Ingrese Nombre y Apellido para iniciar la sesión clínica:");
+        if (user) localStorage.setItem("usuarioActual", user);
+        else user = "INVITADO";
     }
 
-    iniciarSesionYMapa();
+    const container = document.getElementById('estaciones');
+    estaciones.forEach(est => {
+        const div = document.createElement('div');
+        div.className = 'nodo';
+        div.dataset.id = est.id;
+        div.style.left = est.x + '%';
+        div.style.top = est.y + '%';
+        div.innerHTML = `<span>${est.id}</span> ${est.nombre}`;
+        div.onclick = () => {
+            if (est.id === 1) window.location.href = "https://drrubenmpereyra-stack.github.io/estacion-1-evaluacion-clinica/";
+            else window.location.href = `encuentro.html?id=${est.id}`;
+        };
+        container.appendChild(div);
+    });
+
+    // 3. Carga de Progreso
+    db.collection("progreso").doc(user).get().then((doc) => {
+        if (doc.exists) {
+            const completadas = doc.data().estaciones_completadas || [];
+            completadas.forEach(id => {
+                const nodo = document.querySelector(`[data-id="${id}"]`);
+                if (nodo) nodo.classList.add('completado');
+            });
+        }
+    });
 </script>
 </body>
 </html>
